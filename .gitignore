@@ -4,3 +4,4 @@
 .terraform*
 *.tfstate*
 z_setup_walkthrough.md
+*.log
