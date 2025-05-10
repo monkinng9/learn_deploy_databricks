@@ -9,3 +9,10 @@ variable "location" {
   type        = string
   default     = "eastasia" # Choose a region that supports Premium Databricks & Unity Catalog
 }
+
+variable "prefix" {
+  description = "A prefix for all resource names to ensure uniqueness."
+  type        = string
+  default     = "ldb" # learn_databricks
+}
+
