@@ -1,0 +1,6 @@
+# .gitignore
+.env
+*.tfvars # ถ้าคุณใช้ไฟล์ .tfvars สำหรับ secrets อื่นๆ
+.terraform*
+*.tfstate*
+z_setup_walkthrough.md
