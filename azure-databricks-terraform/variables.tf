@@ -16,3 +16,8 @@ variable "prefix" {
   default     = "ldb" # learn_databricks
 }
 
+variable "vnet_address_space" {
+  description = "The address space for the Virtual Network."
+  type        = list(string)
+  default     = ["10.0.0.0/16"]
+}
