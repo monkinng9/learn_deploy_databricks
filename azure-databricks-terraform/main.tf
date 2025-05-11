@@ -46,6 +46,38 @@ resource "azurerm_subnet" "private_endpoints" {
   address_prefixes     = var.private_endpoints_subnet_address_prefix
 }
 
+resource "azurerm_network_security_group" "databricks_nsg" {
+  name                = "${var.prefix}-db-nsg"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  # Databricks will add its required rules. You can add more restrictive outbound if needed.
+  # For simplicity, we start with a basic NSG.
+  # You can add specific security_rule blocks here if needed, e.g.:
+  # security_rule {
+  #   name                       = "AllowVnetOutBound"
+  #   priority                   = 4000
+  #   direction                  = "Outbound"
+  #   access                     = "Allow"
+  #   protocol                   = "Tcp"
+  #   source_port_range          = "*"
+  #   destination_port_range     = "*"
+  #   source_address_prefix      = "VirtualNetwork"
+  #   destination_address_prefix = "VirtualNetwork"
+  # }
+  # security_rule {
+  #   name                       = "AllowAzureCloudOutbound"
+  #   priority                   = 4001
+  #   direction                  = "Outbound"
+  #   access                     = "Allow"
+  #   protocol                   = "Tcp"
+  #   source_port_range          = "*"
+  #   destination_port_range     = "443"
+  #   source_address_prefix      = "*"
+  #   destination_address_prefix = "AzureCloud" # Or be more specific
+  # }
+}
+
 resource "azurerm_subnet_network_security_group_association" "databricks_public_nsg_assoc" {
   subnet_id                 = azurerm_subnet.databricks_public.id
   network_security_group_id = azurerm_network_security_group.databricks_nsg.id
