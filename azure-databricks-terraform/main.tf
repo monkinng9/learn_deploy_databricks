@@ -45,3 +45,13 @@ resource "azurerm_subnet" "private_endpoints" {
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = var.private_endpoints_subnet_address_prefix
 }
+
+resource "azurerm_subnet_network_security_group_association" "databricks_public_nsg_assoc" {
+  subnet_id                 = azurerm_subnet.databricks_public.id
+  network_security_group_id = azurerm_network_security_group.databricks_nsg.id
+}
+
+resource "azurerm_subnet_network_security_group_association" "databricks_private_nsg_assoc" {
+  subnet_id                 = azurerm_subnet.databricks_private.id
+  network_security_group_id = azurerm_network_security_group.databricks_nsg.id
+}
