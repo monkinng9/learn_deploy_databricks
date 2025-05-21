@@ -13,6 +13,7 @@ locals {
   public_subnet_name             = "${var.prefix}-${var.public_subnet_name_suffix}"
   private_subnet_name            = "${var.prefix}-${var.private_subnet_name_suffix}"
   private_endpoint_subnet_name   = "${var.prefix}-${var.private_endpoint_subnet_name_suffix}"
+  adls_storage_account_name      = "${var.prefix}${var.adls_storage_account_name_suffix}" # Storage account names have stricter naming rules (e.g., no hyphens sometimes, length limits) and must be globally unique.
   workspace_name                 = "${var.prefix}-${var.workspace_name_suffix}"
   private_endpoint_name          = "${local.workspace_name}-pvtEndpoint" # PE name often tied to workspace name
 
@@ -235,3 +236,15 @@ resource "azurerm_private_dns_zone_virtual_network_link" "main" {
   ]
 }
 
+resource "azurerm_storage_account" "adls" {
+  name                     = local.adls_storage_account_name
+  resource_group_name      = azurerm_resource_group.main.name
+  location                 = local.actual_location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"    # Locally-redundant storage
+  account_kind             = "StorageV2" # Required for HNS
+  is_hns_enabled           = true     # Enables Azure Data Lake Storage Gen2
+
+  # depends_on = [azurerm_resource_group.main] # Implicit dependency
+  tags = var.tags # Assuming you might add a tags variable later, or remove this line if not needed.
+}

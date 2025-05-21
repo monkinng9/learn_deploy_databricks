@@ -25,7 +25,7 @@ variable "disable_public_ip" {
 variable "nsg_name_suffix" {
   description = "Suffix for the network security group name."
   type        = string
-  default     = "nsg"
+  default = "nsg"
 }
 
 variable "pricing_tier" {
@@ -110,4 +110,16 @@ variable "workspace_name_suffix" {
   description = "Suffix for the Azure Databricks workspace name."
   type        = string
   default     = "databricks-ws"
+}
+
+variable "adls_storage_account_name_suffix" {
+  description = "Suffix for the ADLS Gen2 storage account name."
+  type        = string
+  default     = "adlsgen2" # Example suffix, ensure it helps create a globally unique name
+}
+
+variable "tags" {
+  description = "A map of tags to assign to the resources."
+  type        = map(string)
+  default     = {}
 }
