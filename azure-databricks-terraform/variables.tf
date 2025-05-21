@@ -19,7 +19,7 @@ variable "prefix" {
 variable "disable_public_ip" {
   description = "Specifies whether to deploy Azure Databricks workspace with secure cluster connectivity (SCC) enabled or not (No Public IP)."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "nsg_name_suffix" {
@@ -53,7 +53,7 @@ variable "private_subnet_name_suffix" {
 variable "public_network_access" {
   description = "Indicates whether public network access is allowed to the workspace with private endpoint - possible values are Enabled or Disabled."
   type        = string
-  default     = "Disabled"
+  default     = "Enabled"
   validation {
     condition     = contains(["Enabled", "Disabled"], var.public_network_access)
     error_message = "Allowed values for public_network_access are Enabled or Disabled."
