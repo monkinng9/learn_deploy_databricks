@@ -21,5 +21,7 @@ resource "azurerm_storage_account" "adls" {
 }
 
 locals {
-  adls_storage_account_name = "${var.prefix}${var.adls_storage_account_name_suffix}"
+  # Storage account names must be between 3 and 24 characters in length and may contain numbers and lowercase letters only
+  # Remove any hyphens and ensure the name is lowercase
+  adls_storage_account_name = lower(replace("${var.prefix}${var.adls_storage_account_name_suffix}", "-", ""))
 }
