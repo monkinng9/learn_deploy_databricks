@@ -1,12 +1,10 @@
-resource "azurerm_resource_group" "main" {
-  name     = var.resource_group_name
-  location = var.location # This location will be used for the new resource group.
-  tags     = var.tags
+data "azurerm_resource_group" "main" {
+  name = var.resource_group_name
 }
 
 locals {
   # All resources will now use the location of the created/managed resource group.
-  actual_location = azurerm_resource_group.main.location
+  actual_location = data.azurerm_resource_group.main.location
 
   # Construct resource names using prefix and suffix variables
   nsg_name                     = "${var.prefix}-${var.nsg_name_suffix}"
@@ -25,7 +23,7 @@ locals {
 resource "azurerm_network_security_group" "main" {
   name                = local.nsg_name
   location            = local.actual_location
-  resource_group_name = azurerm_resource_group.main.name # Use the name of the created/managed RG
+  resource_group_name = data.azurerm_resource_group.main.name # Use the name of the created/managed RG
   tags                = var.tags
 
   security_rule {
@@ -110,7 +108,7 @@ resource "azurerm_network_security_group" "main" {
 resource "azurerm_virtual_network" "main" {
   name                = local.vnet_name
   location            = local.actual_location
-  resource_group_name = azurerm_resource_group.main.name # Use the name of the created/managed RG
+  resource_group_name = data.azurerm_resource_group.main.name # Use the name of the created/managed RG
   address_space       = [var.vnet_cidr]
   tags                = var.tags
 
@@ -121,7 +119,7 @@ resource "azurerm_virtual_network" "main" {
 
 resource "azurerm_subnet" "public" {
   name                 = local.public_subnet_name
-  resource_group_name  = azurerm_resource_group.main.name # Use the name of the created/managed RG
+  resource_group_name  = data.azurerm_resource_group.main.name # Use the name of the created/managed RG
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = [var.public_subnet_cidr]
 
@@ -141,7 +139,7 @@ resource "azurerm_subnet_network_security_group_association" "public" {
 
 resource "azurerm_subnet" "private" {
   name                 = local.private_subnet_name
-  resource_group_name  = azurerm_resource_group.main.name # Use the name of the created/managed RG
+  resource_group_name  = data.azurerm_resource_group.main.name # Use the name of the created/managed RG
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = [var.private_subnet_cidr]
 
@@ -161,7 +159,7 @@ resource "azurerm_subnet_network_security_group_association" "private" {
 
 resource "azurerm_subnet" "private_endpoint" {
   name                                      = local.private_endpoint_subnet_name
-  resource_group_name                       = azurerm_resource_group.main.name # Use the name of the created/managed RG
+  resource_group_name                       = data.azurerm_resource_group.main.name # Use the name of the created/managed RG
   virtual_network_name                      = azurerm_virtual_network.main.name
   address_prefixes                          = [var.private_endpoint_subnet_cidr]
   private_endpoint_network_policies_enabled = false # Required for Private Endpoints
@@ -170,7 +168,7 @@ resource "azurerm_subnet" "private_endpoint" {
 resource "azurerm_databricks_workspace" "main" {
   name                          = local.workspace_name
   location                      = local.actual_location
-  resource_group_name           = azurerm_resource_group.main.name
+  resource_group_name           = data.azurerm_resource_group.main.name
   sku                           = var.pricing_tier
   tags                          = var.tags
   public_network_access_enabled = var.public_network_access == "Enabled"
@@ -204,7 +202,7 @@ resource "azurerm_databricks_workspace" "main" {
 resource "azurerm_private_endpoint" "main" {
   name                = local.private_endpoint_name
   location            = local.actual_location
-  resource_group_name = azurerm_resource_group.main.name
+  resource_group_name = data.azurerm_resource_group.main.name
   subnet_id           = azurerm_subnet.private_endpoint.id
   tags                = var.tags
 
@@ -225,13 +223,13 @@ resource "azurerm_private_endpoint" "main" {
 
 resource "azurerm_private_dns_zone" "main" {
   name                = local.private_dns_zone_name
-  resource_group_name = azurerm_resource_group.main.name
+  resource_group_name = data.azurerm_resource_group.main.name
   tags                = var.tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "main" {
   name                  = "${replace(local.private_dns_zone_name, ".", "-")}-${local.vnet_name}-link" # Unique link name
-  resource_group_name   = azurerm_resource_group.main.name
+  resource_group_name   = data.azurerm_resource_group.main.name
   private_dns_zone_name = azurerm_private_dns_zone.main.name
   tags                  = var.tags
   virtual_network_id    = azurerm_virtual_network.main.id
@@ -245,7 +243,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "main" {
 
 resource "azurerm_storage_account" "adls" {
   name                     = local.adls_storage_account_name
-  resource_group_name      = azurerm_resource_group.main.name
+  resource_group_name      = data.azurerm_resource_group.main.name
   location                 = local.actual_location
   account_tier             = "Standard"
   account_replication_type = "LRS"       # Locally-redundant storage
