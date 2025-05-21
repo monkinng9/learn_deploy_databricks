@@ -8,3 +8,4 @@ z_setup_walkthrough.md
 *.tfplan
 .aider*
 archived/*
+*.aider.chat.history.md
