@@ -160,11 +160,11 @@ resource "azurerm_subnet_network_security_group_association" "private" {
 }
 
 resource "azurerm_subnet" "private_endpoint" {
-  name                              = local.private_endpoint_subnet_name
-  resource_group_name               = azurerm_resource_group.main.name # Use the name of the created/managed RG
-  virtual_network_name              = azurerm_virtual_network.main.name
-  address_prefixes                  = [var.private_endpoint_subnet_cidr]
-  private_endpoint_network_policies = "Disabled" # Required for Private Endpoints
+  name                                      = local.private_endpoint_subnet_name
+  resource_group_name                       = azurerm_resource_group.main.name # Use the name of the created/managed RG
+  virtual_network_name                      = azurerm_virtual_network.main.name
+  address_prefixes                          = [var.private_endpoint_subnet_cidr]
+  private_endpoint_network_policies_enabled = false # Required for Private Endpoints
 }
 
 resource "azurerm_databricks_workspace" "main" {
@@ -252,7 +252,17 @@ resource "azurerm_storage_account" "adls" {
   account_kind             = "StorageV2" # Required for HNS
   is_hns_enabled           = true        # Enables Azure Data Lake Storage Gen2
   min_tls_version          = "TLS1_2"    # Enforce modern TLS
-  allow_blob_public_access = false       # Disable public blob access for enhanced security
+
+  # Note: allow_blob_public_access is deprecated and now controlled by
+  # the blob_properties block with retention policies
+  blob_properties {
+    delete_retention_policy {
+      days = 7
+    }
+    container_delete_retention_policy {
+      days = 7
+    }
+  }
 
   # depends_on = [azurerm_resource_group.main] # Implicit dependency
   tags = var.tags # Assuming you might add a tags variable later, or remove this line if not needed.
