@@ -25,7 +25,7 @@ variable "disable_public_ip" {
 variable "nsg_name_suffix" {
   description = "Suffix for the network security group name."
   type        = string
-  default = "nsg"
+  default     = "nsg"
 }
 
 variable "pricing_tier" {

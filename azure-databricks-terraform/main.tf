@@ -8,17 +8,17 @@ locals {
   actual_location = azurerm_resource_group.main.location
 
   # Construct resource names using prefix and suffix variables
-  nsg_name                       = "${var.prefix}-${var.nsg_name_suffix}"
-  vnet_name                      = "${var.prefix}-${var.vnet_name_suffix}"
-  public_subnet_name             = "${var.prefix}-${var.public_subnet_name_suffix}"
-  private_subnet_name            = "${var.prefix}-${var.private_subnet_name_suffix}"
-  private_endpoint_subnet_name   = "${var.prefix}-${var.private_endpoint_subnet_name_suffix}"
-  adls_storage_account_name      = "${var.prefix}${var.adls_storage_account_name_suffix}" # Storage account names have stricter naming rules (e.g., no hyphens sometimes, length limits) and must be globally unique.
-  workspace_name                 = "${var.prefix}-${var.workspace_name_suffix}"
-  private_endpoint_name          = "${local.workspace_name}-pvtEndpoint" # PE name often tied to workspace name
+  nsg_name                     = "${var.prefix}-${var.nsg_name_suffix}"
+  vnet_name                    = "${var.prefix}-${var.vnet_name_suffix}"
+  public_subnet_name           = "${var.prefix}-${var.public_subnet_name_suffix}"
+  private_subnet_name          = "${var.prefix}-${var.private_subnet_name_suffix}"
+  private_endpoint_subnet_name = "${var.prefix}-${var.private_endpoint_subnet_name_suffix}"
+  adls_storage_account_name    = "${var.prefix}${var.adls_storage_account_name_suffix}" # Storage account names have stricter naming rules (e.g., no hyphens sometimes, length limits) and must be globally unique.
+  workspace_name               = "${var.prefix}-${var.workspace_name_suffix}"
+  private_endpoint_name        = "${local.workspace_name}-pvtEndpoint" # PE name often tied to workspace name
 
-  private_dns_zone_name = "privatelink.azuredatabricks.net" # Standard for Databricks Private Link
-  pvt_endpoint_dns_group_name = "defaultGroup" # Internal name for the DNS group in PE
+  private_dns_zone_name       = "privatelink.azuredatabricks.net" # Standard for Databricks Private Link
+  pvt_endpoint_dns_group_name = "defaultGroup"                    # Internal name for the DNS group in PE
 }
 
 resource "azurerm_network_security_group" "main" {
@@ -157,18 +157,18 @@ resource "azurerm_subnet_network_security_group_association" "private" {
 }
 
 resource "azurerm_subnet" "private_endpoint" {
-  name                                           = local.private_endpoint_subnet_name
-  resource_group_name                            = azurerm_resource_group.main.name # Use the name of the created/managed RG
-  virtual_network_name                           = azurerm_virtual_network.main.name
-  address_prefixes                               = [var.private_endpoint_subnet_cidr]
-  private_endpoint_network_policies              = "Disabled" # Required for Private Endpoints
+  name                              = local.private_endpoint_subnet_name
+  resource_group_name               = azurerm_resource_group.main.name # Use the name of the created/managed RG
+  virtual_network_name              = azurerm_virtual_network.main.name
+  address_prefixes                  = [var.private_endpoint_subnet_cidr]
+  private_endpoint_network_policies = "Disabled" # Required for Private Endpoints
 }
 
 resource "azurerm_databricks_workspace" "main" {
-  name                        = local.workspace_name
-  location                    = local.actual_location
-  resource_group_name         = azurerm_resource_group.main.name
-  sku                         = var.pricing_tier
+  name                          = local.workspace_name
+  location                      = local.actual_location
+  resource_group_name           = azurerm_resource_group.main.name
+  sku                           = var.pricing_tier
   public_network_access_enabled = var.public_network_access == "Enabled"
 
   # Moved network_security_group_rules_required to be a top-level argument.
@@ -179,15 +179,15 @@ resource "azurerm_databricks_workspace" "main" {
 
   custom_parameters {
     # VNet Injection parameters:
-    virtual_network_id = azurerm_virtual_network.main.id # Reference the VNet ID
-    public_subnet_name = azurerm_subnet.public.name      # Reference the public subnet NAME
-    private_subnet_name = azurerm_subnet.private.name    # Reference the private subnet NAME
-    
+    virtual_network_id  = azurerm_virtual_network.main.id # Reference the VNet ID
+    public_subnet_name  = azurerm_subnet.public.name      # Reference the public subnet NAME
+    private_subnet_name = azurerm_subnet.private.name     # Reference the private subnet NAME
+
     # NSG association IDs:
     public_subnet_network_security_group_association_id  = azurerm_subnet_network_security_group_association.public.id
     private_subnet_network_security_group_association_id = azurerm_subnet_network_security_group_association.private.id
 
-    no_public_ip             = var.disable_public_ip # For VNet Injection with no Public IP (Secure Cluster Connectivity)
+    no_public_ip = var.disable_public_ip # For VNet Injection with no Public IP (Secure Cluster Connectivity)
   }
 
   depends_on = [
@@ -241,9 +241,9 @@ resource "azurerm_storage_account" "adls" {
   resource_group_name      = azurerm_resource_group.main.name
   location                 = local.actual_location
   account_tier             = "Standard"
-  account_replication_type = "LRS"    # Locally-redundant storage
+  account_replication_type = "LRS"       # Locally-redundant storage
   account_kind             = "StorageV2" # Required for HNS
-  is_hns_enabled           = true     # Enables Azure Data Lake Storage Gen2
+  is_hns_enabled           = true        # Enables Azure Data Lake Storage Gen2
 
   # depends_on = [azurerm_resource_group.main] # Implicit dependency
   tags = var.tags # Assuming you might add a tags variable later, or remove this line if not needed.
