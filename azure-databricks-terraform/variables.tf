@@ -78,16 +78,6 @@ variable "public_subnet_name_suffix" {
   default     = "public-snet"
 }
 
-variable "required_nsg_rules" {
-  description = "Indicates whether to retain or remove the AzureDatabricks outbound NSG rule - possible values are AllRules or NoAzureDatabricksRules."
-  type        = string
-  default     = "NoAzureDatabricksRules" # We define rules in main.tf
-  validation {
-    condition     = contains(["AllRules", "NoAzureDatabricksRules"], var.required_nsg_rules)
-    error_message = "Allowed values for required_nsg_rules are AllRules or NoAzureDatabricksRules."
-  }
-}
-
 variable "vnet_cidr" {
   description = "CIDR range for the vnet."
   type        = string

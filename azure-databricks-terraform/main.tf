@@ -1,6 +1,7 @@
 resource "azurerm_resource_group" "main" {
   name     = var.resource_group_name
   location = var.location # This location will be used for the new resource group.
+  tags     = var.tags
 }
 
 locals {
@@ -25,6 +26,7 @@ resource "azurerm_network_security_group" "main" {
   name                = local.nsg_name
   location            = local.actual_location
   resource_group_name = azurerm_resource_group.main.name # Use the name of the created/managed RG
+  tags                = var.tags
 
   security_rule {
     name                       = "AllowVnetInBound"
@@ -41,7 +43,7 @@ resource "azurerm_network_security_group" "main" {
 
   security_rule {
     name                       = "AllowDatabricksControlPlaneOutbound"
-    priority                   = 100 # Note: Consider unique priorities if they are in the same direction and overlap.
+    priority                   = 200
     direction                  = "Outbound"
     access                     = "Allow"
     protocol                   = "Tcp"
@@ -54,7 +56,7 @@ resource "azurerm_network_security_group" "main" {
 
   security_rule {
     name                       = "AllowSqlOutbound"
-    priority                   = 101
+    priority                   = 210
     direction                  = "Outbound"
     access                     = "Allow"
     protocol                   = "Tcp"
@@ -67,7 +69,7 @@ resource "azurerm_network_security_group" "main" {
 
   security_rule {
     name                       = "AllowStorageOutbound"
-    priority                   = 102
+    priority                   = 220
     direction                  = "Outbound"
     access                     = "Allow"
     protocol                   = "Tcp"
@@ -80,7 +82,7 @@ resource "azurerm_network_security_group" "main" {
 
   security_rule {
     name                       = "AllowVnetOutBound"
-    priority                   = 103
+    priority                   = 230
     direction                  = "Outbound"
     access                     = "Allow"
     protocol                   = "*"
@@ -93,7 +95,7 @@ resource "azurerm_network_security_group" "main" {
 
   security_rule {
     name                       = "AllowEventHubOutbound"
-    priority                   = 104
+    priority                   = 240
     direction                  = "Outbound"
     access                     = "Allow"
     protocol                   = "Tcp"
@@ -110,6 +112,7 @@ resource "azurerm_virtual_network" "main" {
   location            = local.actual_location
   resource_group_name = azurerm_resource_group.main.name # Use the name of the created/managed RG
   address_space       = [var.vnet_cidr]
+  tags                = var.tags
 
   # depends_on is not strictly necessary here as Terraform infers dependencies,
   # but it doesn't hurt if you prefer explicit declaration.
@@ -169,6 +172,7 @@ resource "azurerm_databricks_workspace" "main" {
   location                      = local.actual_location
   resource_group_name           = azurerm_resource_group.main.name
   sku                           = var.pricing_tier
+  tags                          = var.tags
   public_network_access_enabled = var.public_network_access == "Enabled"
 
   # Moved network_security_group_rules_required to be a top-level argument.
@@ -202,6 +206,7 @@ resource "azurerm_private_endpoint" "main" {
   location            = local.actual_location
   resource_group_name = azurerm_resource_group.main.name
   subnet_id           = azurerm_subnet.private_endpoint.id
+  tags                = var.tags
 
   private_service_connection {
     name                           = "${local.private_endpoint_name}-conn"
@@ -221,12 +226,14 @@ resource "azurerm_private_endpoint" "main" {
 resource "azurerm_private_dns_zone" "main" {
   name                = local.private_dns_zone_name
   resource_group_name = azurerm_resource_group.main.name
+  tags                = var.tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "main" {
   name                  = "${replace(local.private_dns_zone_name, ".", "-")}-${local.vnet_name}-link" # Unique link name
   resource_group_name   = azurerm_resource_group.main.name
   private_dns_zone_name = azurerm_private_dns_zone.main.name
+  tags                  = var.tags
   virtual_network_id    = azurerm_virtual_network.main.id
   registration_enabled  = false # Typically false for Private Link DNS zones managed this way
 
@@ -244,6 +251,8 @@ resource "azurerm_storage_account" "adls" {
   account_replication_type = "LRS"       # Locally-redundant storage
   account_kind             = "StorageV2" # Required for HNS
   is_hns_enabled           = true        # Enables Azure Data Lake Storage Gen2
+  min_tls_version          = "TLS1_2"    # Enforce modern TLS
+  allow_blob_public_access = false       # Disable public blob access for enhanced security
 
   # depends_on = [azurerm_resource_group.main] # Implicit dependency
   tags = var.tags # Assuming you might add a tags variable later, or remove this line if not needed.

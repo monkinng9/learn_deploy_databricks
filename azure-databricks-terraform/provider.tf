@@ -2,7 +2,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.0" # Ensure this version is compatible with all resource definitions
+      version = "~> 3.90.0" # Pin to a specific minor version for stability
     }
   }
 }
