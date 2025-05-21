@@ -6,3 +6,5 @@
 z_setup_walkthrough.md
 *.log
 *.tfplan
+.aider*
+archived/*
