@@ -10,3 +10,4 @@ z_setup_walkthrough.md
 archived/*
 *.aider.chat.history.md
 .output-md
+azure-databricks-terraform/z_note/*

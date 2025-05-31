@@ -18,6 +18,32 @@ resource "azurerm_network_security_group" "main" {
   }
 
   security_rule {
+    name                       = "AllowDatabricksInboundSsh"
+    priority                   = 110
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "AzureDatabricks"
+    destination_address_prefix = "VirtualNetwork"
+    description                = "Allow SSH from Databricks control plane to workers (Network Intent Policy)."
+  }
+
+  security_rule {
+    name                       = "AllowDatabricksInboundProxy"
+    priority                   = 120
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "5557"
+    source_address_prefix      = "AzureDatabricks"
+    destination_address_prefix = "VirtualNetwork"
+    description                = "Allow Proxy from Databricks control plane to workers (Network Intent Policy)."
+  }
+
+  security_rule {
     name                       = "AllowDatabricksControlPlaneOutbound"
     priority                   = 200
     direction                  = "Outbound"
