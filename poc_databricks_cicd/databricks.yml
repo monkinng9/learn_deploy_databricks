@@ -1,0 +1,30 @@
+# This is a Databricks asset bundle definition for poc_databricks_cicd.
+# See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
+bundle:
+  name: poc_databricks_cicd
+  uuid: 6c2cd342-3226-48e8-91c9-2cfd933955ef
+
+include:
+  - resources/*.yml
+  - resources/*/*.yml
+
+targets:
+  dev:
+    # The default target uses 'mode: development' to create a development copy.
+    # - Deployed resources get prefixed with '[dev my_user_name]'
+    # - Any job schedules and triggers are paused by default.
+    # See also https://docs.databricks.com/dev-tools/bundles/deployment-modes.html.
+    mode: development
+    default: true
+    workspace:
+      host: https://adb-3867220070484759.19.azuredatabricks.net
+
+  prod:
+    mode: production
+    workspace:
+      host: https://adb-3867220070484759.19.azuredatabricks.net
+      # We explicitly deploy to /Workspace/Users/takedath@outlook.com to make sure we only have a single copy.
+      root_path: /Workspace/Users/takedath@outlook.com/.bundle/${bundle.name}/${bundle.target}
+    permissions:
+      - user_name: takedath@outlook.com
+        level: CAN_MANAGE
